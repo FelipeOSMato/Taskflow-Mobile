@@ -1,20 +1,60 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+import LoginScreen from './telas/login';
+import HomeScreen from './telas/home';
+import DevScreen from './telas/devs';
+import UserScreen from './telas/users';
+import CadastroScreen from './telas/cadEnd';
+import ProjetoScreen from './telas/projetos';
+
+const Drawer = createDrawerNavigator();
+const Stack = createNativeStackNavigator();
+
+function MenuDrawer(){
+  return(
+    <Drawer.Navigator
+
+      screenOptions={{
+        drawerStyle:{
+          backgroundColor: '#5B86B3',
+        },
+          drawerActiveTintColor: '#fff',      // cor do texto ativo
+          drawerInactiveTintColor: '#e7d1ff', // cor do texto inativo
+          drawerLabelStyle: {
+          fontSize: 16,
+          fontWeight: 'bold',
+        },
+        headerStyle: {
+          backgroundColor: "#5B86B3",
+        },
+        headerTintColor: "#fff", 
+        headerTitleStyle: {
+          fontWeight: "bold",
+        },
+      }}
+      
+    >
+      <Drawer.Screen name="Home" component={HomeScreen}/>
+      <Drawer.Screen name="Desenvolvedores" component={DevScreen}/>
+      <Drawer.Screen name="Usuários" component={UserScreen}/>
+      <Drawer.Screen name="Projetos" component={ProjetoScreen}/>
+      <Drawer.Screen name="Cadastro Endereço" component={CadastroScreen}/>
+    </Drawer.Navigator>
+  )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App(){
+  return(
+    <NavigationContainer>
+
+      <Stack.Navigator screenOptions={{headerShown:false}}>
+        <Stack.Screen name="Login" component={LoginScreen}/>
+        <Stack.Screen name="Menu" component={MenuDrawer}/>
+      </Stack.Navigator>  
+
+    </NavigationContainer>
+  )
+}
