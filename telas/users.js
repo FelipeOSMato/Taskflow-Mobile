@@ -8,11 +8,12 @@ import {
   SafeAreaView,
   Modal
 } from "react-native";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import axios from "axios";
 
-const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/usuario`
+const API_URL = `http://ipDaMaquina:8000/api/usuario`
 
 export default function HomeScreen() {
 
@@ -23,7 +24,12 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-    useEffect(() => {
+  const navigation = useNavigation();
+
+    useFocusEffect(
+      useCallback(() => {
+      setLoading(true)
+       
       axios.get(API_URL)
         .then((response) => {
           setUsuarios(response.data);
@@ -34,7 +40,7 @@ export default function HomeScreen() {
           setError('Não foi possível carregar os Usuários.');
           setLoading(false);
         });
-    },[]);
+    },[]));
 
     if (loading) {
       return (
@@ -77,7 +83,9 @@ export default function HomeScreen() {
         }
 
         ListFooterComponent={
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => navigation.navigate("CadastroUsuario")}>
             <Text style={styles.addButtonText}>+ Novo usuário</Text>
           </TouchableOpacity>
         }

@@ -8,11 +8,12 @@ import {
   SafeAreaView,
   Modal
 } from "react-native";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import axios from "axios";
 
-const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/tarefa`
+const API_URL ="http://ipDaMaquina:8000/api/tarefa";
 
 export default function HomeScreen() {
   
@@ -23,7 +24,10 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-    useEffect(() => {
+  const navigation = useNavigation();
+
+    useFocusEffect(
+      useCallback(() => {
       axios.get(API_URL)
         .then((response) => {
           setTarefas(response.data);
@@ -34,7 +38,7 @@ export default function HomeScreen() {
           setError('Não foi possível carregar as Tarefas.');
           setLoading(false);
         });
-    },[]);
+    },[]));
 
   const getStatusColor = (status) =>
     status === "Concluída" ? "#4CAF50" : "#FF9800";
@@ -106,7 +110,10 @@ export default function HomeScreen() {
         }
 
         ListFooterComponent={
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => navigation.navigate("CadastroTarefa")}
+          >
             <Text style={styles.addButtonText}>+ Nova tarefa</Text>
           </TouchableOpacity>
         }

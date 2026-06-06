@@ -9,6 +9,9 @@ import DevScreen from './telas/devs';
 import UserScreen from './telas/users';
 import CadastroScreen from './telas/cadEnd';
 import ProjetoScreen from './telas/projetos';
+import CadastroUsuarioScreen from './telas/cadastros/cadastroUsuario'
+import CadastroTarefaScreen from './telas/cadastros/cadastroTarefa';
+import CadastroProjetoScreen from './telas/cadastros/cadastroProjeto';
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -51,8 +54,10 @@ export default function App(){
     <NavigationContainer>
 
       <Stack.Navigator screenOptions={{headerShown:false}}>
-        <Stack.Screen name="Login" component={LoginScreen}/>
         <Stack.Screen name="Menu" component={MenuDrawer}/>
+        <Stack.Screen name="CadastroUsuario" component={CadastroUsuarioScreen}/>
+        <Stack.Screen name="CadastroTarefa" component={CadastroTarefaScreen}/>
+        <Stack.Screen name="CadastroProjeto" component={CadastroProjetoScreen}/>
       </Stack.Navigator>  
 
     </NavigationContainer>

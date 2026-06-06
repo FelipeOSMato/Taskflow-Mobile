@@ -8,11 +8,12 @@ import {
   SafeAreaView,
   Modal
 } from "react-native";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import axios from "axios";
 
-const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/projeto`
+const API_URL = `http://ipDaMaquina:8000/api/projeto`
 
 export default function HomeScreen() {
 
@@ -23,7 +24,10 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-    useEffect(() => {
+  const navigation = useNavigation();
+
+    useFocusEffect(
+      useCallback(() => {
       axios.get(API_URL)
         .then((response) => {
           setProjetos(response.data);
@@ -34,7 +38,7 @@ export default function HomeScreen() {
           setError('Não foi possível carregar os contatos.');
           setLoading(false);
         });
-    },[]);
+    },[]));
 
     if (loading) {
     return (
@@ -77,7 +81,10 @@ export default function HomeScreen() {
         }
 
         ListFooterComponent={
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={()=> navigation.navigate("CadastroProjeto")}
+          >
             <Text style={styles.addButtonText}>+ Novo Projeto</Text>
           </TouchableOpacity>
         }
