@@ -13,8 +13,8 @@
   import { useNavigation } from "@react-navigation/native";
   import { Picker } from '@react-native-picker/picker';
 
-  const API_INSERT = 'http://ipDaMaquina:8000/api/criar-tarefa'
-  const API_VIEW = 'http://ipDaMaquina:8000/api/projeto'
+  const API_INSERT = 'http://127.0.0.1:8000/api/criar-tarefa'
+  const API_VIEW = 'http://127.0.0.1:8000/api/projeto'
 
   export default function CadastroTarefaScreen() {
     const [titulo, setTitulo] = useState('');

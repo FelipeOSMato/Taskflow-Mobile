@@ -13,13 +13,17 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import axios from "axios";
 
-const API_URL = `http://ipDaMaquina:8000/api/projeto`
+const API_URL = `http://127.0.0.1:8000/api/projeto`
+const API_DELETE = `http://127.0.0.1:8000/api/excluir-projeto`
 
 export default function HomeScreen() {
 
   const [projetos, setProjetos] = useState([]);
   const [selectedProjeto, setSelectedProjeto] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,6 +43,31 @@ export default function HomeScreen() {
           setLoading(false);
         });
     },[]));
+
+  const excluirProjeto = async (id)=>{
+    try{
+      //Deleta o projeto selecionada puxando o ID
+      await axios.delete(`${API_DELETE}/${id}`);
+
+      //Atualiza a lista em tempo real
+      setProjetos(prev => prev.filter(p=>p.id !== id))
+
+      setDeleteModalVisible(false)
+      setModalVisible(false)
+    }catch (error){
+      console.log(error)
+      alert('Erro ao excluir projeto!')
+    }
+  }
+
+  const verificarProjeto = () => {
+      if(selectedProjeto.quantiaTarefas > 0){
+        alert("Este projeto possui tarefas e não pode ser excluído.")
+      }else{
+        setDeleteModalVisible(true);
+      }
+  }
+
 
     if (loading) {
     return (
@@ -125,11 +154,66 @@ export default function HomeScreen() {
             </Text>
 
             <TouchableOpacity
+              disabled = {selectedProjeto?.quantiaTarefas > 0}
+              style = {[
+                styles.deleteButton,
+                selectedProjeto?.quantiaTarefas > 0 && {backgroundColor: "#BDBDBD"}
+              ]}
+              onPress={()=>{
+                setTaskToDelete(selectedProjeto)
+                verificarProjeto()
+              }}
+            >
+              <Text style={styles.closeButtonText}>
+                Excluir
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
             >
               <Text style={styles.closeButtonText}>Fechar</Text>
             </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={deleteModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.deleteModal}>
+
+            <Text style={styles.modalTitle}>
+              Excluir projeto
+            </Text>
+
+            <Text style={styles.modalText}>
+              Tem certeza que deseja excluir{" "}
+              <Text style={{ fontWeight: "bold" }}>
+                {taskToDelete?.nome}
+              </Text>
+              ?
+            </Text>
+
+            <View style={styles.deleteActions}>
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={styles.closeButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => excluirProjeto(taskToDelete.id)}
+              >
+                <Text style={styles.closeButtonText}>Excluir</Text>
+              </TouchableOpacity>
+
+            </View>
 
           </View>
         </View>
@@ -267,7 +351,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#5B86B3",
     padding: 12,
     borderRadius: 10,
-    marginTop: 20,
     alignItems: "center"
   },
 
@@ -293,4 +376,32 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
 
+  deleteModal: {
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 20,
+  },
+  deleteActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#757575",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    margin: 8,
+  },
+
+  deleteButton: {
+    flex: 1,
+    backgroundColor: "#E53935",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    margin: 8,
+  }
 });

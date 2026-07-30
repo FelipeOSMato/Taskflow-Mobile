@@ -12,7 +12,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 
-const API_URL = 'http://ipDaMaquina:8000/api/criar-usuario'
+const API_URL = 'http://127.0.0.1:8000/api/criar-usuario'
 
 export default function CadastroUsuarioScreen() {
   const [nome, setNome] = useState('');

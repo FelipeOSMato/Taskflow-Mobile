@@ -13,7 +13,8 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import axios from "axios";
 
-const API_URL ="http://ipDaMaquina:8000/api/tarefa";
+const API_URL ="http://127.0.0.1:8000/api/tarefa";
+const API_DELETE ="http://127.0.0.1:8000/api/excluir-tarefa"
 
 export default function HomeScreen() {
   
@@ -21,10 +22,29 @@ export default function HomeScreen() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const navigation = useNavigation();
+
+  const excluirTarefa = async (id)=>{
+    try{
+      //Deleta a tarefa selecionada puxando o ID
+      await axios.delete(`${API_DELETE}/${id}`);
+
+      //Atualiza a lista em tempo real
+      setTarefas(prev => prev.filter(t=>t.id !== id))
+
+      setDeleteModalVisible(false)
+      setModalVisible(false)
+    }catch (error){
+      console.log(error)
+      alert('Erro ao excluir tarefa!')
+    }
+  }
 
     useFocusEffect(
       useCallback(() => {
@@ -183,6 +203,16 @@ export default function HomeScreen() {
             >
               {selectedTask?.status}
             </Text>
+            
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => {
+                setTaskToDelete(selectedTask)
+                setDeleteModalVisible(true)
+              }}
+            >
+              <Text style={styles.closeButtonText}>Excluir Tarefa</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.closeButton}
@@ -190,6 +220,45 @@ export default function HomeScreen() {
             >
               <Text style={styles.closeButtonText}>Fechar</Text>
             </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={deleteModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.deleteModal}>
+
+            <Text style={styles.modalTitle}>
+              Excluir tarefa
+            </Text>
+
+            <Text style={styles.modalText}>
+              Tem certeza que deseja excluir{" "}
+              <Text style={{ fontWeight: "bold" }}>
+                {taskToDelete?.titulo}
+              </Text>
+              ?
+            </Text>
+
+            <View style={styles.deleteActions}>
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={styles.closeButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => excluirTarefa(taskToDelete.id)}
+              >
+                <Text style={styles.closeButtonText}>Excluir</Text>
+              </TouchableOpacity>
+
+            </View>
 
           </View>
         </View>
@@ -337,7 +406,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#5B86B3",
     padding: 12,
     borderRadius: 10,
-    marginTop: 20,
     alignItems: "center"
   },
 
@@ -362,5 +430,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center"
   },
+  deleteModal: {
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 20,
+  },
+  deleteActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
 
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#757575",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    margin: 8,
+  },
+
+  deleteButton: {
+    flex: 1,
+    backgroundColor: "#E53935",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    margin: 8,
+  }
 });

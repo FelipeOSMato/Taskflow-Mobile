@@ -13,13 +13,18 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import axios from "axios";
 
-const API_URL = `http://ipDaMaquina:8000/api/usuario`
+const API_URL = `http://127.0.0.1:8000/api/usuario`
+const API_DELETE = `http://127.0.0.1:8000/api/excluir-usuario`
 
 export default function HomeScreen() {
 
   const [usuarios, setUsuarios] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,6 +47,22 @@ export default function HomeScreen() {
         });
     },[]));
 
+    const excluirUsuario = async (id)=>{
+      try{
+        //Deleta o Usuario selecionada puxando o ID
+        await axios.delete(`${API_DELETE}/${id}`);
+
+        //Atualiza a lista em tempo real
+        setUsuarios(prev => prev.filter(p=>p.id !== id))
+
+        setDeleteModalVisible(false)
+        setModalVisible(false)
+      }catch (error){
+        console.log(error)
+        alert('Erro ao excluir projeto!')
+      }
+    }
+
     if (loading) {
       return (
           <View style={styles.center}>
@@ -58,6 +79,15 @@ export default function HomeScreen() {
           </View>
       );
     }
+
+  const verificarUsuario = () => {
+      if(selectedUser.quantiaProjetos > 0){
+        alert("Este Usuario possui projetos e não pode ser excluído.")
+      }else{
+        setDeleteModalVisible(true);
+      }
+  }
+
 
   return (
     <View style={styles.container}>
@@ -121,11 +151,67 @@ export default function HomeScreen() {
             </Text>
 
             <TouchableOpacity
+              disabled = {selectedUser?.quantiaProjetos > 0}
+              style = {[
+                styles.deleteButton,
+                selectedUser?.quantiaProjetos > 0 && {backgroundColor: "#BDBDBD"}
+              ]}
+              onPress={()=>{
+                setTaskToDelete(selectedUser)
+                verificarUsuario()
+              }}
+            >
+              <Text style={styles.closeButtonText}>
+                Excluir
+              </Text>
+            </TouchableOpacity>
+            
+
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
             >
               <Text style={styles.closeButtonText}>Fechar</Text>
             </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={deleteModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.deleteModal}>
+
+            <Text style={styles.modalTitle}>
+              Excluir usuario
+            </Text>
+
+            <Text style={styles.modalText}>
+              Tem certeza que deseja excluir{" "}
+              <Text style={{ fontWeight: "bold" }}>
+                {taskToDelete?.nome}
+              </Text>
+              ?
+            </Text>
+
+            <View style={styles.deleteActions}>
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={styles.closeButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => excluirUsuario(taskToDelete.id)}
+              >
+                <Text style={styles.closeButtonText}>Excluir</Text>
+              </TouchableOpacity>
+
+            </View>
 
           </View>
         </View>
@@ -263,7 +349,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#5B86B3",
     padding: 12,
     borderRadius: 10,
-    marginTop: 20,
     alignItems: "center"
   },
 
@@ -287,4 +372,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center"
   },
+    deleteModal: {
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 20,
+  },
+  deleteActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#757575",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    margin: 8,
+  },
+
+  deleteButton: {
+    flex: 1,
+    backgroundColor: "#E53935",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    margin: 8,
+  }
 });
