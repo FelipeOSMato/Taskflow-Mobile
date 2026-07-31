@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  SafeAreaView,
   Modal
 } from "react-native";
 import React, { useState, useEffect, useCallback} from 'react';
@@ -15,6 +14,8 @@ import axios from "axios";
 
 const API_URL ="http://127.0.0.1:8000/api/tarefa";
 const API_DELETE ="http://127.0.0.1:8000/api/excluir-tarefa"
+const API_CONCLUIR ="http://127.0.0.1:8000/api/concluir-tarefa"
+const API_DESFAZER ="http://127.0.0.1:8000/api/desfazer-tarefa"
 
 export default function HomeScreen() {
   
@@ -25,11 +26,14 @@ export default function HomeScreen() {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
 
+  const [tarefaConcluida, setTarefaConcluida] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const navigation = useNavigation();
 
+  //função de exclusão
   const excluirTarefa = async (id)=>{
     try{
       //Deleta a tarefa selecionada puxando o ID
@@ -43,6 +47,25 @@ export default function HomeScreen() {
     }catch (error){
       console.log(error)
       alert('Erro ao excluir tarefa!')
+    }
+  }
+  //função de alterção
+  const alterarStatus = async (id, status) => {
+    try{ 
+      let response
+
+        if (status === "Pendente"){
+          response = await axios.put(`${API_CONCLUIR}/${id}`)
+        }else if (status === "Concluída"){
+          response = await axios.put(`${API_DESFAZER}/${id}`)
+        }
+
+        setTarefas(prev => prev.map(t=> t.id === id ? response.data : t))
+
+        setSelectedTask(response.data)
+    }catch (error){
+      console.log(error)
+      alert('Erro ao alterar status!')
     }
   }
 
@@ -63,6 +86,9 @@ export default function HomeScreen() {
   const getStatusColor = (status) =>
     status === "Concluída" ? "#4CAF50" : "#FF9800";
 
+  const getStatusButtonColor = (status) =>
+    status === "Concluída" ? "#FF9800" : "#4CAF50";
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -81,12 +107,11 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
 
       <FlatList
         data={tarefas}
         keyExtractor={(item) => item.id}
-
         ListHeaderComponent={
           <View>
 
@@ -140,7 +165,7 @@ export default function HomeScreen() {
 
         /* RENDER */
         renderItem={({ item }) => (
-          <TouchableOpacity
+          <View
             style={[
               styles.taskCard,
               {
@@ -148,21 +173,55 @@ export default function HomeScreen() {
                 borderLeftColor: getStatusColor(item.status)
               }
             ]}
-            onPress={() => {
-              setSelectedTask(item);
-              setModalVisible(true);
-            }}
           >
-            <Text style={styles.taskTitle}>{item.titulo}</Text>
-            <Text
-              style={[
-                styles.taskStatus,
-                { color: getStatusColor(item.status) }
-              ]}
-            >
-              {item.status}
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.taskRow}>
+                <TouchableOpacity 
+                  style={styles.taskTextRow}
+                  onPress={() => {
+                      setSelectedTask(item);
+                      setModalVisible(true);
+                  }}
+                >
+                  <Text style={styles.taskTitle}>{item.titulo}</Text>
+                  <Text
+                    style={[
+                      styles.taskStatus,
+                      { color: getStatusColor(item.status) }
+                    ]}
+                  >
+                    {item.status}
+                  </Text> 
+                </TouchableOpacity>
+
+                <View style={styles.taskBtnRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.statusButton,{
+                        backgroundColor: getStatusButtonColor(item.status)
+                      }
+                    ]}
+                    onPress={() =>
+                        alterarStatus(item.id, item.status)
+                    } 
+                  >
+                    <Text style={styles.closeButtonText}>
+                        {item.status === "Pendente" ? "Concluir" : "Desfazer"}
+                    </Text>
+
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => {
+                      setTaskToDelete(item)
+                      setDeleteModalVisible(true)
+                    }}
+                  >
+                    <Text style={styles.closeButtonText}>Excluir</Text>
+                  </TouchableOpacity>
+                </View>
+            </View>
+          </View>
         )}
       />
 
@@ -203,16 +262,6 @@ export default function HomeScreen() {
             >
               {selectedTask?.status}
             </Text>
-            
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => {
-                setTaskToDelete(selectedTask)
-                setDeleteModalVisible(true)
-              }}
-            >
-              <Text style={styles.closeButtonText}>Excluir Tarefa</Text>
-            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.closeButton}
@@ -225,6 +274,7 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
+      {/*MODAL DE DELETAR*/}
       <Modal
         visible={deleteModalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
@@ -252,7 +302,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={styles.deleteModalButton}
                 onPress={() => excluirTarefa(taskToDelete.id)}
               >
                 <Text style={styles.closeButtonText}>Excluir</Text>
@@ -264,7 +314,7 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -273,7 +323,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F6FA",
-    padding: 20
+    padding: 20,
   },
 
   header: {
@@ -406,7 +456,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#5B86B3",
     padding: 12,
     borderRadius: 10,
-    alignItems: "center"
+    alignItems: "center",
+    marginTop: 8
   },
 
   closeButtonText: {
@@ -449,13 +500,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     margin: 8,
   },
-
-  deleteButton: {
+  deleteModalButton: {
     flex: 1,
     backgroundColor: "#E53935",
     padding: 12,
     borderRadius: 10,
     alignItems: "center",
     margin: 8,
-  }
+  },
+
+  deleteButton: {
+    backgroundColor: "#E53935",
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statusButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  taskTextRow:{
+    width: "50%",
+    flexDirection: "column",
+  },
+  taskBtnRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+  },
+    taskRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: 'space-between'
+  },
+
+
 });

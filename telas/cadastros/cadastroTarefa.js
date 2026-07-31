@@ -60,19 +60,30 @@
 
     const formatarDataTempoReal = (text) => {
       let digitos = text.replace(/\D/g, '').substring(0, 8);
+      let dia = digitos.substring(0,2)
+      let mes = digitos.substring(2,4)
+      let ano = digitos.substring(4,8)
 
-      let resultado = '';
-
-      if (digitos.length > 0) {
-        resultado = digitos.substring(0, 2);
+      if(dia.length == 2 && Number(dia) > 30 && Number(mes) == 4 || Number(mes) == 6 || Number(mes) == 9 || Number(mes) == 11){
+        dia = '30';
+      }else if(dia.length === 2 && Number(dia)>31 && Number(mes) == 1 || Number(mes) == 3 || Number(mes) == 5 || Number(mes) == 7 || Number(mes) == 8 && Number(mes) == 10 && Number(mes) == 12){
+        dia = '31'
+      }else if(dia.length === 2 && Number(dia) > 28 && Number(mes) == 2){
+        dia = '28'
       }
 
-      if (digitos.length >= 3) {
-        resultado = resultado + '-' + digitos.substring(2, 4);
+      if(mes.length === 2 && Number(mes) > 12){
+        mes = '12'
       }
 
-      if (digitos.length >= 5) {
-        resultado = resultado + '-' + digitos.substring(4, 8);
+      let resultado = dia;
+
+      if (mes.length > 0) {
+        resultado = resultado + '-' + mes;
+      }
+
+      if (ano.length > 0) {
+        resultado = resultado + '-' + ano;
       }
 
       return resultado;
