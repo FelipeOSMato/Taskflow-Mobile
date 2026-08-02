@@ -264,6 +264,23 @@ export default function HomeScreen() {
             </Text>
 
             <TouchableOpacity
+                style = {[
+                  styles.updateButton,
+                  selectedTask?.status === "Concluída" && {backgroundColor: "#BDBDBD"}
+                ]}
+                disabled = {selectedTask?.status === "Concluída"}
+                onPress={() => {
+                    setModalVisible(false)
+                    navigation.navigate("EditarTarefa", {
+                        tarefa: selectedTask
+                    })
+                  }
+                }
+            >
+                <Text style={styles.closeButtonText}>Editar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
             >
@@ -538,6 +555,13 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       alignItems: "flex-start",
       justifyContent: 'space-between'
+  },
+    updateButton: {
+      backgroundColor: "#054c97",
+      padding: 12,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 8
   },
 
 

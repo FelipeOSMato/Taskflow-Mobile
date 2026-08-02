@@ -15,6 +15,8 @@ import axios from "axios";
 
 const API_URL = `http://127.0.0.1:8000/api/usuario`
 const API_DELETE = `http://127.0.0.1:8000/api/excluir-usuario`
+const API_ATIVAR ="http://127.0.0.1:8000/api/ativar-usuario"
+const API_DESATIVAR ="http://127.0.0.1:8000/api/desativar-usuario"
 
 export default function HomeScreen() {
 
@@ -30,6 +32,25 @@ export default function HomeScreen() {
   const [error, setError] = useState(null);
 
   const navigation = useNavigation();
+
+    const alterarStatus = async (id, status) => {
+      try{ 
+        let response
+
+          if (status === "Inativo"){
+            response = await axios.put(`${API_ATIVAR}/${id}`)
+          }else if (status === "Ativo"){
+            response = await axios.put(`${API_DESATIVAR}/${id}`)
+          }
+
+          setUsuarios(prev => prev.map(t=> t.id === id ? response.data : t))
+
+          setSelectedUser(response.data)
+      }catch (error){
+        console.log(error)
+        alert('Erro ao alterar status!')
+      }
+    }
 
     useFocusEffect(
       useCallback(() => {
@@ -87,7 +108,12 @@ export default function HomeScreen() {
         setDeleteModalVisible(true);
       }
   }
+  const getStatusColor = (status) =>
+    status === "Inativo" ? "#FF9800" : "#4CAF50";
 
+
+  const getStatusButtonColor = (status) =>
+    status === "Ativo" ? "#FF9800" : "#4CAF50";
 
   return (
     <View style={styles.container}>
@@ -122,19 +148,67 @@ export default function HomeScreen() {
 
         /* RENDER */
         
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.userCard]}
-            onPress={() => {
-              setSelectedUser(item);
-              setModalVisible(true);
-            }}
-          >
-            <Text style={styles.userName}>{item.nome}</Text>
-            <Text style={styles.userEmail}>{item.email}</Text>
-          </TouchableOpacity>
-        )}
-      />
+       renderItem={({ item }) => (
+        <View
+          style={[
+            styles.userCard
+          ]}
+        >
+          <View style={styles.userRow}>
+              <TouchableOpacity 
+                style={styles.userTextRow}
+                onPress={() => {
+                    setSelectedUser(item);
+                    setModalVisible(true);
+                }}
+              >
+                <Text style={styles.userName}>{item.nome}</Text>
+                <Text style={styles.userEmail}>{item.email}</Text>
+                <Text
+                  style={[
+                    styles.userStatus,
+                    { color: getStatusColor(item.status) }
+                  ]}
+                >
+                  {item.status}
+                </Text> 
+              </TouchableOpacity>
+
+              <View style={styles.userBtnRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.statusButton,{
+                      backgroundColor: getStatusButtonColor(item.status)
+                    }
+                  ]}
+                  onPress={() =>
+                      alterarStatus(item.id, item.status)
+                  } 
+                >
+                  <Text style={styles.closeButtonText}>
+                      {item.status === "Inativo" ? "Ativar" : "Desativar"}
+                  </Text>
+
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  disabled = {item.quantiaProjetos > 0}
+                  style = {[
+                    styles.deleteButton,
+                    item.quantiaProjetos > 0 && {backgroundColor: "#BDBDBD"}
+                  ]}
+                  onPress={() => {
+                    setTaskToDelete(item)
+                    setDeleteModalVisible(true)
+                  }}
+                >
+                  <Text style={styles.closeButtonText}>Excluir</Text>
+                </TouchableOpacity>
+              </View>
+          </View>
+        </View>
+      )}
+    />
 
       {/* MODAL */}
       <Modal visible={modalVisible} transparent animationType="fade">
@@ -149,23 +223,33 @@ export default function HomeScreen() {
             <Text style={styles.modalText}>
               {selectedUser?.email}
             </Text>
+        
+            <Text style={styles.modalLabel}>Status:</Text>
+            <Text
+              style={[
+                styles.modalBadge,
+                {
+                  backgroundColor: getStatusColor(
+                    selectedUser?.status
+                  )
+                }
+              ]}
+            >
+              {selectedUser?.status}
+            </Text>
 
             <TouchableOpacity
-              disabled = {selectedUser?.quantiaProjetos > 0}
-              style = {[
-                styles.deleteButton,
-                selectedUser?.quantiaProjetos > 0 && {backgroundColor: "#BDBDBD"}
-              ]}
-              onPress={()=>{
-                setTaskToDelete(selectedUser)
-                verificarUsuario()
-              }}
+                style = {styles.updateButton}
+                onPress={() => {
+                    setModalVisible(false)
+                    navigation.navigate("EditarUsuario", {
+                        usuario: selectedUser
+                    })
+                  }
+                }
             >
-              <Text style={styles.closeButtonText}>
-                Excluir
-              </Text>
+                <Text style={styles.closeButtonText}>Editar</Text>
             </TouchableOpacity>
-            
 
             <TouchableOpacity
               style={styles.closeButton}
@@ -205,7 +289,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={styles.deleteModalButton}
                 onPress={() => excluirUsuario(taskToDelete.id)}
               >
                 <Text style={styles.closeButtonText}>Excluir</Text>
@@ -340,6 +424,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 6,
     marginTop: 5,
+    color: "white",
     alignSelf: "flex-start",
     fontWeight: "bold",
     backgroundColor: "#E0E0E0"
@@ -349,7 +434,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#5B86B3",
     padding: 12,
     borderRadius: 10,
-    alignItems: "center"
+    alignItems: "center",
+    marginTop: 8
   },
 
   closeButtonText: {
@@ -393,11 +479,49 @@ const styles = StyleSheet.create({
   },
 
   deleteButton: {
+    backgroundColor: "#E53935",
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statusButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  userTextRow:{
+    width: "50%",
+    flexDirection: "column",
+  },
+  userBtnRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+  },
+  userRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: 'space-between'
+  },
+  deleteModalButton: {
     flex: 1,
     backgroundColor: "#E53935",
     padding: 12,
     borderRadius: 10,
     alignItems: "center",
     margin: 8,
-  }
+  },
+  updateButton: {
+      backgroundColor: "#054c97",
+      padding: 12,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 8
+  },
+
 });

@@ -60,8 +60,8 @@ export default function HomeScreen() {
     }
   }
 
-  const verificarProjeto = () => {
-      if(selectedProjeto.quantiaTarefas > 0){
+  const verificarProjeto = (projeto) => {
+      if(projeto.quantiaTarefas > 0){
         alert("Este projeto possui tarefas e não pode ser excluído.")
       }else{
         setDeleteModalVisible(true);
@@ -120,19 +120,60 @@ export default function HomeScreen() {
 
         /* RENDER */
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.projetoCard}
-            
-            onPress={() => {
-              setSelectedProjeto(item);
-              setModalVisible(true);
-            }}
+          <View
+            style={
+              styles.projetoCard
+            }
           >
-            <Text style={styles.projetoName}>{item.nome}</Text>
-            <Text style={styles.projetoDesc}>{item.descricao}</Text>
-          </TouchableOpacity>
+            <View style={styles.projetoRow}>
+                <TouchableOpacity 
+                  style={styles.projetoTextRow}
+                  onPress={() => {
+                      setSelectedProjeto(item);
+                      setModalVisible(true);
+                  }}
+                >
+                  <Text style={styles.projetoName}>{item.nome}</Text>
+                  <Text style={styles.projetoDesc}>{item.descricao}</Text>
+                </TouchableOpacity>
+
+                <View style={styles.projetoBtnRow}>
+
+                  <TouchableOpacity
+                      style = {styles.updateButton}
+                      onPress={() => {
+                          setModalVisible(false)
+                          navigation.navigate("EditarProjeto", {
+                              projeto: item
+                          })
+                        }
+                      }
+                  >
+                      <Text style={styles.closeButtonText}>Editar</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    disabled = {item.quantiaTarefas > 0}
+                    style = {[
+                      styles.deleteButton,
+                      item.quantiaTarefas > 0 && {backgroundColor: "#BDBDBD"}
+                    ]}
+                    onPress={()=>{
+                      setTaskToDelete(item)
+                      verificarProjeto(item)
+                    }}
+                  >
+                    <Text style={styles.closeButtonText}>
+                      Excluir
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+            </View>
+          </View>
         )}
       />
+
+      
 
       {/* MODAL */}
       <Modal visible={modalVisible} transparent animationType="fade">
@@ -152,22 +193,6 @@ export default function HomeScreen() {
             <Text style={styles.modalText}>
               {selectedProjeto?.usuario_nome}
             </Text>
-
-            <TouchableOpacity
-              disabled = {selectedProjeto?.quantiaTarefas > 0}
-              style = {[
-                styles.deleteButton,
-                selectedProjeto?.quantiaTarefas > 0 && {backgroundColor: "#BDBDBD"}
-              ]}
-              onPress={()=>{
-                setTaskToDelete(selectedProjeto)
-                verificarProjeto()
-              }}
-            >
-              <Text style={styles.closeButtonText}>
-                Excluir
-              </Text>
-            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.closeButton}
@@ -207,7 +232,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={styles.deleteModalButton}
                 onPress={() => excluirProjeto(taskToDelete.id)}
               >
                 <Text style={styles.closeButtonText}>Excluir</Text>
@@ -351,7 +376,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#5B86B3",
     padding: 12,
     borderRadius: 10,
-    alignItems: "center"
+    alignItems: "center",
+    marginTop: 8
   },
 
   closeButtonText: {
@@ -397,11 +423,42 @@ const styles = StyleSheet.create({
   },
 
   deleteButton: {
+    backgroundColor: "#E53935",
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteModalButton: {
     flex: 1,
     backgroundColor: "#E53935",
     padding: 12,
     borderRadius: 10,
     alignItems: "center",
     margin: 8,
-  }
+  },
+  updateButton: {
+    backgroundColor: "#054c97",
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  projetoTextRow:{
+    width: "50%",
+    flexDirection: "column",
+  },
+  projetoBtnRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+  },
+  projetoRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: 'space-between'
+  },
 });

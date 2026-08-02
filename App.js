@@ -12,6 +12,9 @@ import ProjetoScreen from './telas/projetos';
 import CadastroUsuarioScreen from './telas/cadastros/cadastroUsuario'
 import CadastroTarefaScreen from './telas/cadastros/cadastroTarefa';
 import CadastroProjetoScreen from './telas/cadastros/cadastroProjeto';
+import EditarUsuarioScreen from './telas/atualizacoes/editarUsuario'
+import EditarTarefaScreen from './telas/atualizacoes/editarTarefa';
+import EditarProjetoScreen from './telas/atualizacoes/editarProjeto';
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -55,6 +58,9 @@ export default function App(){
 
       <Stack.Navigator screenOptions={{headerShown:false}}>
         <Stack.Screen name="Menu" component={MenuDrawer}/>
+        <Stack.Screen name="EditarUsuario" component={EditarUsuarioScreen}/>
+        <Stack.Screen name="EditarProjeto" component={EditarProjetoScreen}/>
+        <Stack.Screen name="EditarTarefa" component={EditarTarefaScreen}/>
         <Stack.Screen name="CadastroUsuario" component={CadastroUsuarioScreen}/>
         <Stack.Screen name="CadastroTarefa" component={CadastroTarefaScreen}/>
         <Stack.Screen name="CadastroProjeto" component={CadastroProjetoScreen}/>
